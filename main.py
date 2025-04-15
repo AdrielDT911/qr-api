@@ -54,3 +54,8 @@ def guardar_cdc(request: CDCRequest):
         return {"status": "ok", "message": f"CDC_ID '{request.cdc_id}' recibido para QR_ID {request.qr_id}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error recibiendo CDC_ID: {str(e)}")
+
+
+
+# cd C:\Users\SCV\Documents\QR_API
+# uvicorn main:app --host 0.0.0.0 --port 8000
