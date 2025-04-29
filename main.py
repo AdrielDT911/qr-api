@@ -35,10 +35,11 @@ def generar_qr(request: QRRequest):
     try:
         qr_id = random.randint(1, 999999)  # Generamos primero
         qr_data = (
-            f"https://adrieldt911.github.io/ScanWeb/"
-            f"app_id={request.app_id}&app_user={request.app_user}"
-            f"&app_page_id={request.app_page_id}&qr_id={qr_id}"  # <-- lo agregamos aquí
+            f"https://adrieldt911.github.io/ScanWeb/index.html"
+            f"?app_id={request.app_id}&app_user={request.app_user}"
+            f"&app_page_id={request.app_page_id}&qr_id={qr_id}"
         )
+
         qr = qrcode.make(qr_data)
         buffer = BytesIO()
         qr.save(buffer, format="PNG")
