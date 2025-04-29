@@ -36,7 +36,7 @@ def generar_qr(request: QRRequest):
         qr_data = (
             f"https://adrieldt911.github.io/ScanWeb/?"
             f"app_id={request.app_id}&app_user={request.app_user}"
-            f"&app_page_id={request.app_page_id}&qr_id={qr_id}"  # <-- lo agregamos aquí
+            f"&app_page_id={request.app_page_id}"  # <-- lo agregamos aquí
         )
         qr = qrcode.make(qr_data)
         buffer = BytesIO()
