@@ -5,6 +5,7 @@ import qrcode
 from io import BytesIO
 import base64
 import random
+qr_cdc_storage = {}  # Mapea qr_id -> cdc_id (cuando ya se escaneó)
 
 # App FastAPI
 app = FastAPI()
@@ -36,7 +37,7 @@ def generar_qr(request: QRRequest):
         qr_data = (
             f"https://adrieldt911.github.io/ScanWeb/?"
             f"app_id={request.app_id}&app_user={request.app_user}"
-            f"&app_page_id={request.app_page_id}"  # <-- lo agregamos aquí
+            f"&app_page_id={request.app_page_id}&qr_id={qr_id}"  # <-- lo agregamos aquí
         )
         qr = qrcode.make(qr_data)
         buffer = BytesIO()
@@ -51,12 +52,26 @@ def generar_qr(request: QRRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generando QR: {str(e)}")
 
-# Guardar CDC (modo fake, ya no guarda nada real)
+# Guardar CDC
 @app.post("/qr/guardar-cdc")
 def guardar_cdc(request: CDCRequest):
     try:
-        return {"status": "ok", "message": f"CDC_ID '{request.cdc_id}' recibido para QR_ID {request.qr_id}"}
+        # Guardamos el cdc_id para ese qr_id
+        qr_cdc_storage[request.qr_id] = request.cdc_id
+        return {"status": "ok", "message": f"CDC_ID '{request.cdc_id}' guardado para QR_ID {request.qr_id}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error recibiendo CDC_ID: {str(e)}")
+
+# Verificars CDC
+@app.get("/qr/verificar-cdc")
+def verificar_cdc(qr_id: int):
+    try:
+        cdc = qr_cdc_storage.get(qr_id)
+        if cdc:
+            return {"qr_id": qr_id, "cdc_id": cdc}
+        else:
+            return {"qr_id": qr_id, "cdc_id": None}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al verificar CDC_ID: {str(e)}")
 
 
