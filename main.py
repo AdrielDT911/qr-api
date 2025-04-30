@@ -21,7 +21,9 @@ app.add_middleware(
 
 # Modelos
 class QRRequest(BaseModel):
-    pass  # No necesitamos los parámetros ahora
+    app_id: int
+    app_user: str
+    app_page_id: int
 
 class CDCRequest(BaseModel):
     qr_id: int
@@ -31,8 +33,12 @@ class CDCRequest(BaseModel):
 @app.post("/qr/generador")
 def generar_qr(request: QRRequest):
     try:
-        qr_id = random.randint(1, 999999)  # Generamos el qr_id
-        qr_data = f"https://adrieldt911.github.io/ScanWeb/?qr_id={qr_id}"
+        qr_id = random.randint(1, 999999)  # Generamos primero
+        qr_data = (
+            f"https://adrieldt911.github.io/ScanWeb/"
+            f"?app_id={request.app_id}&app_user={request.app_user}"
+            f"&app_page_id={request.app_page_id}&qr_id={qr_id}"
+        )
 
         qr = qrcode.make(qr_data)
         buffer = BytesIO()
@@ -57,12 +63,12 @@ def guardar_cdc(request: CDCRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error recibiendo CDC_ID: {str(e)}")
 
-# Verificar CDC
+# Verificars CDC
 from fastapi import Query
 @app.get("/qr/verificar-cdc")
-def verificar_cdc(qr_id: int = Query(...), cdc_id: str = Query(...)):
+def verificar_cdc(qr_id: int = Query(...)):
     try:
-        if qr_id in cdc_storage and cdc_storage[qr_id] == cdc_id:
+        if qr_id in cdc_storage:
             return {"cdc_id": cdc_storage[qr_id]}
         else:
             return {"cdc_id": None}
