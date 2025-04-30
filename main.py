@@ -5,10 +5,10 @@ import qrcode
 from io import BytesIO
 import base64
 import random
-qr_cdc_storage = {}  # Mapea qr_id -> cdc_id (cuando ya se escaneó)
 
 # App FastAPI
 app = FastAPI()
+cdc_storage = {}  # Guardamos los cdc_id temporalmente
 
 # CORS
 app.add_middleware(
@@ -57,22 +57,23 @@ def generar_qr(request: QRRequest):
 @app.post("/qr/guardar-cdc")
 def guardar_cdc(request: CDCRequest):
     try:
-        # Guardamos el cdc_id para ese qr_id
-        qr_cdc_storage[request.qr_id] = request.cdc_id
-        return {"status": "ok", "message": f"CDC_ID '{request.cdc_id}' guardado para QR_ID {request.qr_id}"}
+        # Guardamos el cdc_id asociado al qr_id
+        cdc_storage[request.qr_id] = request.cdc_id
+        return {"status": "ok", "message": f"CDC_ID '{request.cdc_id}' recibido para QR_ID {request.qr_id}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error recibiendo CDC_ID: {str(e)}")
 
 # Verificars CDC
+from fastapi import Query
 @app.get("/qr/verificar-cdc")
-def verificar_cdc(qr_id: int):
+def verificar_cdc(qr_id: int = Query(...)):
     try:
-        cdc = qr_cdc_storage.get(qr_id)
-        if cdc:
-            return {"qr_id": qr_id, "cdc_id": cdc}
+        if qr_id in cdc_storage:
+            return {"cdc_id": cdc_storage[qr_id]}
         else:
-            return {"qr_id": qr_id, "cdc_id": None}
+            return {"cdc_id": None}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al verificar CDC_ID: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error verificando CDC_ID: {str(e)}")
+
 
 
