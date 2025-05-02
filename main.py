@@ -9,6 +9,7 @@ import random
 app = FastAPI()
 cdc_storage = {}
 
+# Permitir CORS desde cualquier origen
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,10 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class CDCRequest(BaseModel):
-    qr_id: int
-    cdc_id: str
-
+# Ya no se esperan parámetros en la generación de QR
 @app.post("/qr/generador")
 def generar_qr():
     try:
@@ -39,6 +37,11 @@ def generar_qr():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generando QR: {str(e)}")
+
+# Modelo solo con los campos necesarios
+class CDCRequest(BaseModel):
+    qr_id: int
+    cdc_id: str
 
 @app.post("/qr/guardar-cdc")
 def guardar_cdc(request: CDCRequest):
