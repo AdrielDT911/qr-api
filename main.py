@@ -17,9 +17,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class QRRequest(BaseModel):
-    pass  # Ya no esperamos parámetros
-
 class CDCRequest(BaseModel):
     qr_id: int
     cdc_id: str
