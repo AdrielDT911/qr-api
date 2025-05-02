@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import qrcode
@@ -47,8 +47,6 @@ def guardar_cdc(request: CDCRequest):
         return {"status": "ok", "message": f"CDC_ID '{request.cdc_id}' recibido para QR_ID {request.qr_id}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error recibiendo CDC_ID: {str(e)}")
-
-from fastapi import Query
 
 @app.get("/qr/verificar-cdc")
 def verificar_cdc(qr_id: int = Query(...)):
