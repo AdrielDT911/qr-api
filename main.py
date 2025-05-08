@@ -7,7 +7,7 @@ import base64
 import uuid
 
 app = FastAPI()
-cdc_storage = {}  # Estructura: { session_id: { qr_id: cdc_id } }
+cdc_storage = {}
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,19 +26,15 @@ class CDCRequest(BaseModel):
     app_session: str
 
 @app.post("/qr/generador")
-def generar_qr(request: QRRequest):
+def generar_qr(req: QRRequest):
     try:
         qr_id = uuid.uuid4().hex
-        qr_data = f"https://adrieldt911.github.io/ScanWeb/?qr_id={qr_id}&app_session={request.app_session}"
+        qr_data = f"https://adrieldt911.github.io/ScanWeb/?qr_id={qr_id}&app_session={req.app_session}"
 
         qr = qrcode.make(qr_data)
         buffer = BytesIO()
         qr.save(buffer, format="PNG")
         qr_bytes = buffer.getvalue()
-
-        # Inicializar espacio para esa sesión
-        if request.app_session not in cdc_storage:
-            cdc_storage[request.app_session] = {}
 
         return {
             "qr": base64.b64encode(qr_bytes).decode(),
@@ -50,19 +46,11 @@ def generar_qr(request: QRRequest):
 
 @app.post("/qr/guardar-cdc")
 def guardar_cdc(request: CDCRequest):
-    try:
-        if request.app_session not in cdc_storage:
-            cdc_storage[request.app_session] = {}
-
-        cdc_storage[request.app_session][request.qr_id] = request.cdc_id
-        return {"status": "ok", "message": f"CDC_ID '{request.cdc_id}' guardado para sesión {request.app_session} y QR_ID {request.qr_id}"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error guardando CDC_ID: {str(e)}")
+    key = f"{request.qr_id}:{request.app_session}"
+    cdc_storage[key] = request.cdc_id
+    return {"status": "ok", "message": f"CDC_ID '{request.cdc_id}' recibido para QR_ID {request.qr_id}"}
 
 @app.get("/qr/verificar-cdc")
 def verificar_cdc(qr_id: str = Query(...), app_session: str = Query(...)):
-    try:
-        cdc_id = cdc_storage.get(app_session, {}).get(qr_id)
-        return {"cdc_id": cdc_id}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error verificando CDC_ID: {str(e)}")
+    key = f"{qr_id}:{app_session}"
+    return {"cdc_id": cdc_storage.get(key)}
