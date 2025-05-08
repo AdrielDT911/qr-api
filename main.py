@@ -23,7 +23,7 @@ class QRRequest(BaseModel):
 class CDCRequest(BaseModel):
     qr_id: int
     cdc_id: str
-    session_id: str
+    session_id: int
 
 @app.post("/qr/generador")
 def generar_qr(request: QRRequest):
