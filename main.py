@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import qrcode
 from io import BytesIO
 import base64
-import random
+#import random
 
 app = FastAPI()
 cdc_storage = {}
@@ -27,7 +27,9 @@ class CDCRequest(BaseModel):
 @app.post("/qr/generador")
 def generar_qr():
     try:
-        qr_id = random.randint(1, 999999)
+        #qr_id = random.randint(1, 999999)
+        import uuid
+        qr_id = uuid.uuid4().hex
         qr_data = f"https://adrieldt911.github.io/ScanWeb/?qr_id={qr_id}"
 
         qr = qrcode.make(qr_data)
