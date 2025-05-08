@@ -23,6 +23,7 @@ class QRRequest(BaseModel):
 class CDCRequest(BaseModel):
     qr_id: int
     cdc_id: str
+    session_id: str
 
 @app.post("/qr/generador")
 def generar_qr():
@@ -48,14 +49,18 @@ def generar_qr():
 @app.post("/qr/guardar-cdc")
 def guardar_cdc(request: CDCRequest):
     try:
-        cdc_storage[request.qr_id] = request.cdc_id
-        return {"status": "ok", "message": f"CDC_ID '{request.cdc_id}' recibido para QR_ID {request.qr_id}"}
+        if request.session_id not in cdc_storage:
+            cdc_storage[request.session_id] = {}
+        cdc_storage[request.session_id][request.qr_id] = request.cdc_id
+        return {"status": "ok", "message": f"CDC_ID '{request.cdc_id}' recibido para QR_ID {request.qr_id} en sesión {request.session_id}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error recibiendo CDC_ID: {str(e)}")
 
 @app.get("/qr/verificar-cdc")
-def verificar_cdc(qr_id: int = Query(...)):
+def verificar_cdc(qr_id: str = Query(...), session_id: str = Query(...)):
     try:
-        return {"cdc_id": cdc_storage.get(qr_id)}
+        return {
+            "cdc_id": cdc_storage.get(session_id, {}).get(qr_id)
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error verificando CDC_ID: {str(e)}")
